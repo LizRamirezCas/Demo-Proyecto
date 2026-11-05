@@ -1,0 +1,19 @@
+# Python / Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Entornos virtuales
+venv/
+env/
+.env
+
+# Archivos de configuración de sistema o editor
+.vscode/
+.idea/
+.DS_Store
+
+# Nota: Si el archivo dqn_weights.pth pesa menos de 100 MB, GitHub lo aceptará.
+# Si pesa más de 100 MB, descomenta la siguiente línea:
+# backend/dqn_weights.pth

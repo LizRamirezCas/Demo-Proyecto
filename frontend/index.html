@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Razonamiento Lógico-Matemático | Demo DQN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+    <div class="top-nav">
+        <p class="school">I.E. 80818 Jorge Basadre Grohmann</p>
+        <button id="btn-volver-dashboard" class="btn-ghost" hidden>🏠 Ir a Página Principal</button>
+    </div>
+    <h1 id="main-heading">Evaluación General: Razonamiento Lógico-Matemático</h1>
+</header>
+
+<main class="layout" id="main-layout">
+    <!-- ============================================================== -->
+    <!-- 1. PANTALLA DE CUESTIONARIOS (Visible al iniciar)              -->
+    <!-- ============================================================== -->
+    <section id="view-quiz" class="sheet" aria-labelledby="question-title">
+        <div class="progress" id="progress" aria-label="Avance"></div>
+
+        <div id="quiz-body">
+            <p class="counter" id="counter">Cargando reactivos...</p>
+            <h2 id="question-title" class="question" tabindex="-1">Cargando reactivo…</h2>
+
+            <div id="options-container" class="options" role="group" aria-label="Alternativas"></div>
+            <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+
+            <div id="pause-alert" class="pause" hidden>
+                <div class="pause-time" id="pause-time">2:00</div>
+                <div class="pause-body">
+                    <h3>Pausa activa recomendada (2 min)</h3>
+                    <p>El algoritmo DQN detectó una latencia elevada. Descansa un momento antes de continuar.</p>
+                    <button type="button" class="btn-ghost" id="skip-pause">Terminar pausa</button>
+                </div>
+            </div>
+
+            <button type="button" id="next-btn" class="btn-next" hidden>Siguiente reactivo</button>
+        </div>
+
+        <!-- Resumen de cuestionario temático específico (5 reactivos) -->
+        <div id="summary-tema" class="summary" hidden>
+            <h2 tabindex="-1">Cuestionario Temático Finalizado</h2>
+            <dl class="stats" id="tema-stats"></dl>
+            <button type="button" id="btn-terminar-tema" class="btn-next">Volver a la Página Principal</button>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 2. PANTALLA PRINCIPAL / DASHBOARD (Oculta al inicio)           -->
+    <!-- ============================================================== -->
+    <section id="view-dashboard" class="dashboard-container" hidden>
+        <!-- Columna Izquierda: Sistema de Rachas con Misiones Diarias (Máx 50%) -->
+        <div class="streak-card">
+            <div class="streak-flame">🔥</div>
+            <h2 id="streak-count-text">Racha: 1 día</h2>
+            <p class="streak-sub">¡Constancia en razonamiento matemático!</p>
+            
+            <div class="streak-days" id="streak-days-container">
+                <span class="day active">Hoy</span>
+                <span class="day">D2</span>
+                <span class="day">D3</span>
+                <span class="day">D4</span>
+                <span class="day">D5</span>
+            </div>
+
+            <!-- Progreso diario hacia la racha (tope 50%) -->
+            <div class="streak-progress-box">
+                <div class="streak-progress-header">
+                    <span>Progreso de hoy:</span>
+                    <b id="daily-progress-percent">0% / 50%</b>
+                </div>
+                <div class="streak-bar-track">
+                    <div id="daily-progress-bar" class="streak-bar-fill" style="width: 0%;"></div>
+                </div>
+                <small id="streak-status-hint" class="streak-hint">Completa las misiones en los cuestionarios temáticos.</small>
+            </div>
+
+            <!-- 5 Misiones Diarias (10% cada una) -->
+            <div class="daily-missions">
+                <h4>🎯 Misiones Diarias (Max. 50%)</h4>
+                <ul class="missions-list" id="missions-list">
+                    <li id="m-1" class="mission-item"><span>Resolver un cuestionario temático (5 reactivos)</span> <b>+10%</b></li>
+                    <li id="m-2" class="mission-item"><span>Completar cuestionario sin pausas por fatiga</span> <b>+10%</b></li>
+                    <li id="m-3" class="mission-item"><span>Alcanzar ≥ 60% de aciertos en el tema</span> <b>+10%</b></li>
+                    <li id="m-4" class="mission-item"><span>Latencia promedio menor a 6 s en el tema</span> <b>+10%</b></li>
+                    <li id="m-5" class="mission-item"><span>Resolver un segundo cuestionario de refuerzo</span> <b>+10%</b></li>
+                </ul>
+            </div>
+
+            <!-- Botón de reclamo al día siguiente -->
+            <button id="btn-claim-streak" class="btn-claim-streak" hidden>🎁 Reclamar Siguiente Racha (+1 🔥)</button>
+        </div>
+
+        <!-- Columna Derecha: Temas y Tiempos de Repaso DQN -->
+        <div class="themes-overview">
+            <div class="dashboard-header">
+                <h3>Cuestionarios de Refuerzo por Tema</h3>
+                <p class="hint-text">Tiempos determinados por el <b>algoritmo DQN</b>. Elige un tema para resolver sus 3 cuestionarios:</p>
+            </div>
+            <div class="themes-list" id="themes-list-container">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 3. PANEL LATERAL DEL EVALUADOR                                 -->
+    <!-- ============================================================== -->
+    <aside class="lab" id="lab-panel" aria-label="Panel del evaluador">
+        <details open>
+            <summary>Panel del evaluador</summary>
+            <div id="telemetry-output" class="lab-empty">Responde un reactivo para observar la inferencia del algoritmo DQN.</div>
+        </details>
+    </aside>
+</main>
+
+<!-- Modal: Selección de los 3 cuestionarios de un tema -->
+<div id="modal-cuestionarios" class="modal-overlay" hidden>
+    <div class="modal-card">
+        <h2 id="modal-tema-title">Tema Seleccionado</h2>
+        <p>Selecciona uno de los 3 cuestionarios de 5 preguntas asignados a este tema:</p>
+        
+        <div class="quiz-selector-list">
+            <button type="button" class="btn-quiz-select" onclick="startThemeQuiz(1)">
+                <b>Cuestionario 1 (5 reactivos)</b>
+                <span>Incluye las 4 preguntas de la evaluación general + 1 nueva de afianzamiento</span>
+            </button>
+            <button type="button" class="btn-quiz-select" onclick="startThemeQuiz(2)">
+                <b>Cuestionario 2 (5 reactivos)</b>
+                <span>Práctica procedural intermedia para reducir latencias</span>
+            </button>
+            <button type="button" class="btn-quiz-select" onclick="startThemeQuiz(3)">
+                <b>Cuestionario 3 (5 reactivos)</b>
+                <span>Consolidación y desafío para el intervalo extendido</span>
+            </button>
+        </div>
+
+        <button type="button" class="btn-modal-secondary" onclick="$('modal-cuestionarios').hidden = true;">Cerrar</button>
+    </div>
+</div>
+
+<!-- Modal Flotante: Fin de Evaluación General (16 preguntas) -->
+<div id="modal-final" class="modal-overlay" hidden>
+    <div class="modal-card">
+        <div class="modal-icon">🎉</div>
+        <h2>¡Evaluación General Completada!</h2>
+        <p>Has respondido los 16 reactivos iniciales. El algoritmo DQN ha analizado tus latencias y determinado los tiempos de repaso óptimos para cada tema.</p>
+        <div class="modal-actions">
+            <button type="button" id="btn-ir-dashboard" class="btn-modal-primary">Ir a la Página Principal</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
