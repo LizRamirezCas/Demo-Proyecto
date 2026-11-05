@@ -36,7 +36,7 @@ body {
 .school { margin: 0; color: var(--ink-soft); font-size: 15px; }
 h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; letter-spacing: -0.01em; }
 
-/* Distribución durante el cuestionario: 2 columnas */
+/* Layout de evaluación */
 .layout {
     max-width: 1100px;
     margin: 0 auto;
@@ -47,17 +47,14 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     align-items: start;
 }
 
-/* Distribución durante el Dashboard: Ancho completo */
 .layout.dashboard-mode {
     grid-template-columns: 1fr;
 }
 
-/* Ocultamiento estricto */
 [hidden] {
     display: none !important;
 }
 
-/* Hoja del estudiante */
 .sheet {
     background: var(--sheet);
     border-radius: var(--radius);
@@ -126,7 +123,6 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 .feedback.bad .verdict { color: var(--bad); }
 .feedback .when { display: block; margin-top: 2px; color: var(--ink-soft); }
 
-/* Pausa activa */
 .pause {
     display: flex;
     gap: 20px;
@@ -148,14 +144,12 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 .btn-ghost { padding: 8px 14px; color: var(--rest-ink); background: transparent; border: 2px solid var(--rest-ink); }
 .btn-ghost:hover { background: #fff; }
 
-/* Resumen Temático */
 .summary h2 { margin: 10px 0 18px; font-size: clamp(22px, 3vw, 28px); }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
 .stats div { background: var(--paper); border-radius: 8px; padding: 12px 14px; }
 .stats dt { color: var(--ink-soft); font-size: 14px; }
 .stats dd { margin: 2px 0 0; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* Panel del Evaluador */
 .lab {
     background: var(--pencil-bg);
     border-radius: var(--radius);
@@ -181,7 +175,87 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 .decision.rule { background: var(--rest-bg); }
 
 /* ============================================================== */
-/* ESTILOS DE LA PÁGINA PRINCIPAL (DASHBOARD)                     */
+/* MASCOTA FLOTANTE (BURBUJA + AVATAR LIMPIO A UN COSTADO)        */
+/* ============================================================== */
+.quiz-interactive-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: start;
+}
+
+.quiz-main-col {
+    min-width: 0;
+}
+
+.mascot-floating-bubble {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 175px;
+    position: sticky;
+    top: 24px;
+    animation: fadeInMascot 0.3s ease-out;
+}
+
+@keyframes fadeInMascot {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mascot-bubble-text {
+    position: relative;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.mascot-bubble-text::after {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid #cbd5e1;
+}
+
+.mascot-avatar-circle {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: #e0f2fe;
+    border: 2px solid #7dd3fc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.15);
+    user-select: none;
+}
+
+.mascot-avatar-circle .mascot-acc {
+    position: absolute;
+    font-size: 18px;
+}
+
+#quiz-acc-head { top: -7px; right: 12px; }
+#quiz-acc-body { bottom: -3px; right: 2px; }
+
+/* ============================================================== */
+/* ESTILOS DEL DASHBOARD (PÁGINA PRINCIPAL)                       */
 /* ============================================================== */
 .dashboard-container {
     display: grid;
@@ -192,6 +266,12 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     padding: 28px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.04);
     border: 1px solid var(--grid);
+}
+
+.dashboard-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
 .streak-card {
@@ -217,7 +297,6 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 }
 .streak-days .day.active { background: #f97316; color: #ffffff; border-color: #ea580c; }
 
-/* Barra de progreso diario (Tope 50%) */
 .streak-progress-box {
     width: 100%;
     background: #fff;
@@ -260,7 +339,6 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     line-height: 1.35;
 }
 
-/* Lista de 5 Misiones Diarias */
 .daily-missions {
     width: 100%;
     text-align: left;
@@ -307,7 +385,6 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     color: #059669;
 }
 
-/* Botón de reclamo al día siguiente */
 .btn-claim-streak {
     width: 100%;
     padding: 10px 14px;
@@ -330,6 +407,105 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 @keyframes pulseClaim {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.02); }
+}
+
+/* Tarjeta de personalización en Dashboard */
+.mascot-customizer-card {
+    background: #ffffff;
+    border: 2px solid var(--grid);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    position: relative;
+}
+
+.mascot-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #94a3b8;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.mascot-badge.unlocked {
+    background: #16a34a;
+}
+
+.mascot-avatar-large {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    background: #eff6ff;
+    border: 2px solid #bfdbfe;
+    border-radius: 50%;
+    margin: 8px auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 46px;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+}
+
+.mascot-avatar-large .acc-layer {
+    position: absolute;
+    font-size: 24px;
+}
+
+.acc-layer.head { top: -10px; right: 18px; }
+.acc-layer.body { bottom: -6px; right: 4px; }
+
+.mascot-customizer-card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--ink);
+}
+
+.mascot-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 4px 0 14px;
+}
+
+.accessory-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    transition: opacity 0.3s;
+}
+
+.acc-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+}
+
+.acc-options {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.btn-acc {
+    background: var(--paper);
+    border: 1px solid var(--grid);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.2s;
+}
+
+.btn-acc:hover {
+    border-color: var(--pencil);
+    transform: scale(1.1);
 }
 
 .themes-overview { display: flex; flex-direction: column; }
@@ -369,9 +545,7 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 .repaso-3d { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
 .repaso-pending { background: #e2e8f0; color: #475569; }
 
-/* ============================================================== */
-/* ESTILOS DE VENTANAS FLOTANTES (MODALES)                        */
-/* ============================================================== */
+/* Modales */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
@@ -419,7 +593,14 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
 .btn-quiz-select b { font-size: 15px; color: var(--pencil); }
 .btn-quiz-select span { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
 
+/* Responsive */
 @media (max-width: 860px) {
     .layout { grid-template-columns: 1fr; }
     .dashboard-container { grid-template-columns: 1fr; }
+    .quiz-interactive-grid { grid-template-columns: 1fr; }
+    .mascot-floating-bubble {
+        flex-direction: row;
+        width: 100%;
+    }
+    .mascot-bubble-text::after { display: none; }
 }

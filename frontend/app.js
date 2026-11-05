@@ -1,35 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/api";
 
-const ACTIONS = ["Repasar en 2 horas", "Repasar en 1 día", "Repasar en 3 días", "Pausa activa"];
-const WHEN_STUDENT = [
-    "Te lo mostraremos de nuevo en 2 horas.",
-    "Te lo mostraremos de nuevo en 1 día.",
-    "Te lo mostraremos de nuevo en 3 días."
-];
-const STATE_NAMES = ["Latencia (normalizada)", "Acierto", "Repasos (÷10)", "Dificultad (÷3)"];
-
-// Registro de los intervalos prescritos por tema
-let themeRepasos = {
-    "Sucesiones y Series Lógicas": "Pendiente",
-    "Planteo de Ecuaciones y Proporciones": "Pendiente",
-    "Problemas de Móviles y Cronometría": "Pendiente",
-    "Porcentajes y Probabilidades": "Pendiente"
-};
-
-// ==============================================================
-// GESTIÓN DE RACHA Y 5 MISIONES DIARIAS (Máximo 50% de avance)
-// ==============================================================
-// El estado real de la racha vive en PostgreSQL; aquí solo se guarda la última copia recibida.
-let streakData = {
-    streakDays: 1,
-    dailyProgressPercent: 0,
-    missions: { m1: false, m2: false, m3: false, m4: false, m5: false },
-    goalReached: false,
-    canClaim: false
-};
-let streakError = false;
-
-// Identificador del estudiante (se crea una vez y queda en este navegador)
+// Identificador del estudiante
 function getStudentId() {
     try {
         let id = localStorage.getItem('demo_student_id');
@@ -44,6 +15,92 @@ function getStudentId() {
     }
 }
 
+const ACTIONS = ["Repasar en 2 horas", "Repasar en 1 día", "Repasar en 3 días", "Pausa activa"];
+const WHEN_STUDENT = [
+    "Te lo mostraremos de nuevo en 2 horas.",
+    "Te lo mostraremos de nuevo en 1 día.",
+    "Te lo mostraremos de nuevo en 3 días."
+];
+const STATE_NAMES = ["Latencia (normalizada)", "Acierto", "Repasos (÷10)", "Dificultad (÷3)"];
+
+let themeRepasos = {
+    "Sucesiones y Series Lógicas": "Pendiente",
+    "Planteo de Ecuaciones y Proporciones": "Pendiente",
+    "Problemas de Móviles y Cronometría": "Pendiente",
+    "Porcentajes y Probabilidades": "Pendiente"
+};
+
+let streakData = {
+    streakDays: 1,
+    dailyProgressPercent: 0,
+    missions: { m1: false, m2: false, m3: false, m4: false, m5: false },
+    goalReached: false,
+    canClaim: false
+};
+let streakError = false;
+
+// ==============================================================
+// GESTIÓN DE LA MASCOTA (MINI PROFESOR BASADRITO)
+// ==============================================================
+let mascotAccessories = {
+    head: '🎓',
+    body: '👔'
+};
+
+const PHRASES_CORRECT = [
+    "¡Brillante razonamiento! Deducción impecable. 👏",
+    "¡Exacto! El patrón lógico estaba ahí. ⭐",
+    "¡Muy bien resuelto! Agilidad mental en aumento. 🚀",
+    "¡Excelente! Ritmo óptimo para afianzar el tema. 🎯",
+    "¡Correcto! Fortaleciendo tu retención matemática. 🧠"
+];
+
+const PHRASES_WRONG = [
+    "¡No te desanimes! De los errores surge el razonamiento. 💪",
+    "Estuviste cerca. Fíjate en los detalles intermedios. 🧐",
+    "¡Buen intento! El algoritmo adaptará este reactivo. 🔄",
+    "¡Ánimo! Respira hondo y analiza la siguiente. 🦉",
+    "Errar es parte del aprendizaje adaptativo. ¡Tú puedes! ✨"
+];
+
+function getRandomPhrase(isCorrect) {
+    const list = isCorrect ? PHRASES_CORRECT : PHRASES_WRONG;
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+function updateMascotVisuals() {
+    const qHead = $('quiz-acc-head');
+    const qBody = $('quiz-acc-body');
+    if (qHead) qHead.textContent = mascotAccessories.head;
+    if (qBody) qBody.textContent = mascotAccessories.body;
+
+    const dHead = $('dash-acc-head');
+    const dBody = $('dash-acc-body');
+    if (dHead) dHead.textContent = mascotAccessories.head;
+    if (dBody) dBody.textContent = mascotAccessories.body;
+}
+
+function setAccessory(slot, icon) {
+    if (streakData.dailyProgressPercent < 50 && !streakData.goalReached) {
+        alert("¡Debes completar el 50% de las misiones diarias para equipar este accesorio!");
+        return;
+    }
+    mascotAccessories[slot] = icon;
+    localStorage.setItem("dqn_mascot_acc", JSON.stringify(mascotAccessories));
+    updateMascotVisuals();
+}
+
+function loadMascotAccessories() {
+    const saved = localStorage.getItem("dqn_mascot_acc");
+    if (saved) {
+        try { mascotAccessories = JSON.parse(saved); } catch (e) {}
+    }
+    updateMascotVisuals();
+}
+
+// ==============================================================
+// COMUNICACIÓN API CON POSTGRESQL (Racha y Misiones)
+// ==============================================================
 async function apiRacha(ruta = '', metodo = 'GET', cuerpo = null) {
     const res = await fetch(`${API_URL}/estudiante/${encodeURIComponent(getStudentId())}/racha${ruta}`, {
         method: metodo,
@@ -75,11 +132,6 @@ let selectedTemaForQuiz = null;
 
 const $ = (id) => document.getElementById(id);
 
-function getTodayString() {
-    return new Date().toISOString().split('T')[0];
-}
-
-// Algoritmo Fisher-Yates para barajar las preguntas aleatoriamente
 function shuffleArray(array) {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -90,22 +142,23 @@ function shuffleArray(array) {
 }
 
 // ==============================================================
-// 1. CARGA INICIAL: Inicia limpiamente con las 16 preguntas barajadas
+// 1. CARGA INICIAL (Evaluación general: Mascota oculta)
 // ==============================================================
 async function initApp() {
     isGeneralQuiz = true;
+    loadMascotAccessories();
     loadStreak();
 
-    // Configurar Layout en modo Evaluación (Quiz a la izquierda, Evaluador a la derecha)
     $('main-layout').classList.remove('dashboard-mode');
     $('view-quiz').hidden = false;
     $('lab-panel').hidden = false;
-
-    // Ocultar completamente el Dashboard de Rachas y Temas
     $('view-dashboard').hidden = true;
     $('btn-volver-dashboard').hidden = true;
     $('modal-final').hidden = true;
     $('modal-cuestionarios').hidden = true;
+
+    // Al comienzo NO aparece la mascota
+    if ($('mascot-quiz-bar')) $('mascot-quiz-bar').hidden = true;
 
     $('main-heading').textContent = "Evaluación General: Razonamiento Lógico-Matemático";
 
@@ -114,7 +167,7 @@ async function initApp() {
         if (!res.ok) throw new Error("Error al obtener banco general");
         const rawQuestions = await res.json();
         
-        // Se mezclan aleatoriamente las 16 preguntas
+        // Aleatorización para no mostrar consecutivas por tema
         questions = shuffleArray(rawQuestions);
         currentIndex = 0;
         results = [];
@@ -188,7 +241,11 @@ async function handleAnswer(selectedIndex, clickedBtn) {
             action_desc: result.action_desc
         });
 
-        // Actualizar el intervalo adaptativo para el tema según decida la red
+        // La mascota solo lanza frases en cuestionarios temáticos (cuando está visible)
+        if ($('mascot-quiz-bar') && !$('mascot-quiz-bar').hidden) {
+            $('mascot-speech').textContent = getRandomPhrase(result.is_correct);
+        }
+
         if (result.action_id === 0) themeRepasos[q.tema] = "Repasar en 2 horas";
         else if (result.action_id === 1) themeRepasos[q.tema] = "Repasar en 1 día";
         else if (result.action_id === 2) themeRepasos[q.tema] = "Repasar en 3 días";
@@ -213,6 +270,9 @@ async function handleAnswer(selectedIndex, clickedBtn) {
         renderLab(result);
 
         if (result.action_id === 3) {
+            if ($('mascot-quiz-bar') && !$('mascot-quiz-bar').hidden) {
+                $('mascot-speech').textContent = "¡Tiempo elevado! Te recomiendo descansar 2 minutos.";
+            }
             startPause();
         } else {
             $('next-btn').hidden = false;
@@ -281,10 +341,8 @@ function endPause() {
 function nextQuestion() {
     if (currentIndex === questions.length - 1) {
         if (isGeneralQuiz) {
-            // Fin de las 16 preguntas: activa el modal flotante
             $('modal-final').hidden = false;
         } else {
-            // Fin de un cuestionario temático específico
             showTemaSummary();
         }
         return;
@@ -294,7 +352,7 @@ function nextQuestion() {
 }
 
 // ==============================================================
-// 2. PASO AL DASHBOARD (Página Principal)
+// 2. PASO AL DASHBOARD
 // ==============================================================
 function goToDashboard() {
     $('modal-final').hidden = true;
@@ -306,12 +364,10 @@ function goToDashboard() {
     $('btn-volver-dashboard').hidden = true;
     $('main-heading').textContent = "Página Principal: Seguimiento y Repaso Adaptativo";
 
-    // Muestra la UI de rachas en su estado inicial (las 16 preguntas no suman)
     loadStreak();
     renderDashboardThemes();
 }
 
-// Envía el resultado del cuestionario temático al servidor, que evalúa las misiones y guarda la racha
 async function evaluateMissionsOnThemeQuiz(sessionResults) {
     if (isGeneralQuiz) return;
     const total = sessionResults.length;
@@ -353,13 +409,34 @@ function renderStreakUI() {
     const btnClaim = $('btn-claim-streak');
     const hint = $('streak-status-hint');
 
+    // Desbloqueo de accesorios al alcanzar el 50%
+    const accControls = $('acc-controls');
+    const badge = $('mascot-badge');
+    const unlockMsg = $('mascot-unlock-msg');
+
+    if (streakData.dailyProgressPercent >= 50 || streakData.goalReached) {
+        if (accControls) {
+            accControls.style.opacity = '1';
+            accControls.style.pointerEvents = 'auto';
+        }
+        if (badge) {
+            badge.textContent = '⭐ Desbloqueado';
+            badge.classList.add('unlocked');
+        }
+        if (unlockMsg) {
+            unlockMsg.textContent = '¡Felicidades! Has ganado la personalización de tu Mini Profesor.';
+            unlockMsg.style.color = '#15803d';
+            unlockMsg.style.fontWeight = 'bold';
+        }
+    }
+
     if (streakError) {
         btnClaim.hidden = true;
         hint.textContent = "No se pudo conectar con la base de datos. La racha no se está guardando.";
     } else if (streakData.canClaim) {
         btnClaim.hidden = false;
         hint.textContent = "¡Volviste al día siguiente! Reclama tu nuevo día de racha.";
-    } else if (streakData.goalReached) {
+    } else if (streakData.goalReached || streakData.dailyProgressPercent >= 50) {
         btnClaim.hidden = true;
         hint.textContent = "Meta diaria alcanzada (50%). Vuelve mañana para reclamar tu siguiente día de racha (+1 🔥).";
     } else {
@@ -425,7 +502,7 @@ function openThemeModal(tema) {
 }
 
 // ==============================================================
-// 3. EJECUCIÓN DE CUESTIONARIOS TEMÁTICOS (5 PREGUNTAS)
+// 3. EJECUCIÓN DE CUESTIONARIOS TEMÁTICOS (Mascota visible)
 // ==============================================================
 async function startThemeQuiz(cuestionarioNum) {
     $('modal-cuestionarios').hidden = true;
@@ -436,11 +513,16 @@ async function startThemeQuiz(cuestionarioNum) {
         if (!res.ok) throw new Error("Error al obtener cuestionario del tema");
         questions = await res.json();
 
-        // Regresar layout al modo evaluación (Quiz + Evaluador)
         $('main-layout').classList.remove('dashboard-mode');
         $('view-dashboard').hidden = true;
         $('view-quiz').hidden = false;
         $('lab-panel').hidden = false;
+
+        // Aquí sí se activa el Mini Profesor a un costado
+        if ($('mascot-quiz-bar')) {
+            $('mascot-quiz-bar').hidden = false;
+            $('mascot-speech').textContent = "¡Cuestionario temático! Analiza con calma para desbloquear accesorios.";
+        }
 
         $('btn-volver-dashboard').hidden = false;
         $('summary-tema').hidden = true;
@@ -461,7 +543,6 @@ async function showTemaSummary() {
     $('quiz-body').hidden = true;
     $('summary-tema').hidden = false;
 
-    // Aquí sí se evalúan y suman las misiones de la racha diaria
     await evaluateMissionsOnThemeQuiz(results);
 
     const total = results.length;
@@ -485,5 +566,4 @@ $('btn-terminar-tema').addEventListener('click', goToDashboard);
 const btnClaim = $('btn-claim-streak');
 if (btnClaim) btnClaim.addEventListener('click', claimNextStreak);
 
-// Inicia mostrando de forma limpia y aleatorizada las 16 preguntas
 window.onload = initApp;
