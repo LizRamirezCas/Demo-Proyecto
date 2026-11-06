@@ -48,12 +48,14 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     align-items: start;
 }
 
+.layout.dashboard-mode,
 .layout.login-mode {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 40px); /* Ocupa el alto completo de la ventana */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 85vh; /* Centrado vertical en pantalla */
+    grid-template-columns: 1fr !important;
+    margin: 0 auto;
     padding: 20px;
 }
 
@@ -68,12 +70,11 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centra el logo y la caja */
-    text-align: center;   /* Centra los textos de título y descripción */
-    padding: 10px 0 30px;
+    align-items: center;  /* Centra el tag de Ruta Lógica y la caja */
+    text-align: center;    /* Centra los textos del título y descripción */
 }
 
-/* Opcional: si prefieres que el texto de la tarjeta y sus campos se lean a la izquierda */
+/* La tarjeta blanca mantiene sus textos y campos legibles a la izquierda */
 .login-box {
     background: #ffffff;
     border-radius: 12px;
@@ -81,7 +82,7 @@ h1 { margin: 4px 0 0; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; le
     border: 1.5px solid #e2e8f0;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
     width: 100%;
-    text-align: left; /* Mantiene la etiqueta y el input ordenados */
+    text-align: left;
 }
 
 .login-brand-tag {

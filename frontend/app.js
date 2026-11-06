@@ -558,6 +558,12 @@ async function startThemeQuiz(cuestionarioNum) {
 async function showTemaSummary() {
     clearInterval(pauseTimer);
     $('quiz-body').hidden = true;
+
+    // Ocultar la mascota al finalizar el cuestionario
+    if ($('mascot-quiz-bar')) {
+        $('mascot-quiz-bar').hidden = true;
+    }
+
     $('summary-tema').hidden = false;
 
     await evaluateMissionsOnThemeQuiz(results);
