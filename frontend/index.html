@@ -11,25 +11,56 @@
 </head>
 <body>
 
-<header class="top">
+<!-- Se oculta por defecto al ingresar -->
+<header class="top" id="main-top-header" hidden>
     <div class="top-nav">
         <p class="school">I.E. 80818 Jorge Basadre Grohmann</p>
-        <button id="btn-volver-dashboard" class="btn-ghost" hidden>🏠 Ir a Página Principal</button>
+        <button id="btn-volver-dashboard" class="btn-ghost" hidden onclick="goToDashboard()">🏠 Ir a Página Principal</button>
     </div>
     <h1 id="main-heading">Evaluación General: Razonamiento Lógico-Matemático</h1>
 </header>
 
 <main class="layout" id="main-layout">
+
+    <!-- ============================================================== -->
+    <!-- 0. PANTALLA DE ACCESO (SOLO ESTO PARA INGRESAR)               -->
+    <!-- ============================================================== -->
+    <section id="view-login" class="login-container">
+        <div class="login-brand-tag">
+            <span class="brand-sigma">Σ</span>
+            <span class="brand-text">Ruta Lógica</span>
+            <span class="brand-badge">Demo · 5.° de secundaria</span>
+        </div>
+
+        <h2 class="login-title">Practica razonamiento lógico, un reactivo a la vez.</h2>
+        <p class="login-desc">
+            La plataforma decide cuándo repasar cada tema según cómo respondes y cuánto tardas. 
+            Sin cuentas personales: solo tu código de estudiante.
+        </p>
+
+        <form class="login-box" onsubmit="handleLogin(event)">
+            <label for="input-student-code" class="login-label">Código de estudiante</label>
+            <input 
+                type="text" 
+                id="input-student-code" 
+                class="login-input" 
+                value="EST-80818-01" 
+                required 
+                spellcheck="false"
+            >
+            <button type="submit" class="btn-login-start">
+                Iniciar sesión de práctica
+            </button>
+        </form>
+    </section>
+
     <!-- ============================================================== -->
     <!-- 1. PANTALLA DE CUESTIONARIOS                                   -->
     <!-- ============================================================== -->
-    <section id="view-quiz" class="sheet" aria-labelledby="question-title">
+    <section id="view-quiz" class="sheet" hidden aria-labelledby="question-title">
         <div class="progress" id="progress" aria-label="Avance"></div>
 
-        <!-- Contenedor interactivo: Pregunta a la izquierda, Mascota flotante a la derecha -->
         <div class="quiz-interactive-grid">
-            
-            <!-- Columna de Pregunta -->
             <div id="quiz-body" class="quiz-main-col">
                 <p class="counter" id="counter">Cargando reactivos...</p>
                 <h2 id="question-title" class="question" tabindex="-1">Cargando reactivo…</h2>
@@ -49,7 +80,7 @@
                 <button type="button" id="next-btn" class="btn-next" hidden>Siguiente reactivo</button>
             </div>
 
-            <!-- Mascota flotante con burbuja (Oculta al inicio; visible en cuestionarios temáticos) -->
+            <!-- Mascota flotante con burbuja (Solo en cuestionarios temáticos) -->
             <aside class="mascot-floating-bubble" id="mascot-quiz-bar" hidden>
                 <div class="mascot-bubble-text" id="mascot-speech">
                     ¡Concéntrate! Analiza bien cada premisa.
@@ -60,14 +91,12 @@
                     <span class="mascot-acc" id="quiz-acc-body">👔</span>
                 </div>
             </aside>
-
         </div>
 
-        <!-- Resumen de cuestionario temático específico -->
         <div id="summary-tema" class="summary" hidden>
             <h2 tabindex="-1">Cuestionario Temático Finalizado</h2>
             <dl class="stats" id="tema-stats"></dl>
-            <button type="button" id="btn-terminar-tema" class="btn-next">Volver a la Página Principal</button>
+            <button type="button" id="btn-terminar-tema" class="btn-next" onclick="goToDashboard()">Volver a la Página Principal</button>
         </div>
     </section>
 
@@ -76,7 +105,6 @@
     <!-- ============================================================== -->
     <section id="view-dashboard" class="dashboard-container" hidden>
         <div class="dashboard-left-col">
-            <!-- Tarjeta de Racha y 5 Misiones -->
             <div class="streak-card">
                 <div class="streak-flame">🔥</div>
                 <h2 id="streak-count-text">Racha: 1 día</h2>
@@ -115,7 +143,6 @@
                 <button id="btn-claim-streak" class="btn-claim-streak" hidden>🎁 Reclamar Siguiente Racha (+1 🔥)</button>
             </div>
 
-            <!-- Tarjeta de la Mascota: Mini Profesor Basadrito -->
             <div class="mascot-customizer-card" id="mascot-card">
                 <div class="mascot-badge" id="mascot-badge">🔒 Bloqueado</div>
                 <div class="mascot-avatar-large">
@@ -151,7 +178,6 @@
             </div>
         </div>
 
-        <!-- Columna Derecha: Temas y Tiempos de Repaso DQN -->
         <div class="themes-overview">
             <div class="dashboard-header">
                 <h3>Cuestionarios de Refuerzo por Tema</h3>
@@ -164,15 +190,16 @@
     <!-- ============================================================== -->
     <!-- 3. PANEL LATERAL DEL EVALUADOR                                 -->
     <!-- ============================================================== -->
-    <aside class="lab" id="lab-panel" aria-label="Panel del evaluador">
+    <aside class="lab" id="lab-panel" hidden aria-label="Panel del evaluador">
         <details open>
             <summary>Panel del evaluador</summary>
             <div id="telemetry-output" class="lab-empty">Responde un reactivo para observar la inferencia del algoritmo DQN.</div>
         </details>
     </aside>
+
 </main>
 
-<!-- Modal: Selección de los 3 cuestionarios de un tema -->
+<!-- Modal: Cuestionarios por tema -->
 <div id="modal-cuestionarios" class="modal-overlay" hidden>
     <div class="modal-card">
         <h2 id="modal-tema-title">Tema Seleccionado</h2>
@@ -197,14 +224,14 @@
     </div>
 </div>
 
-<!-- Modal Flotante: Fin de Evaluación General (16 preguntas) -->
+<!-- Modal: Fin de Evaluación General -->
 <div id="modal-final" class="modal-overlay" hidden>
     <div class="modal-card">
         <div class="modal-icon">🎉</div>
         <h2>¡Evaluación General Completada!</h2>
         <p>Has respondido los 16 reactivos iniciales. El algoritmo DQN ha analizado tus latencias y determinado los tiempos de repaso óptimos para cada tema.</p>
         <div class="modal-actions">
-            <button type="button" id="btn-ir-dashboard" class="btn-modal-primary">Ir a la Página Principal</button>
+            <button type="button" id="btn-ir-dashboard" class="btn-modal-primary" onclick="goToDashboard()">Ir a la Página Principal</button>
         </div>
     </div>
 </div>

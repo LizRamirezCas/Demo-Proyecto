@@ -1,18 +1,16 @@
 const API_URL = "http://127.0.0.1:5000/api";
 
-// Identificador del estudiante
+const $ = (id) => document.getElementById(id);
+
+// Código del estudiante
 function getStudentId() {
-    try {
-        let id = localStorage.getItem('demo_student_id');
-        if (!id) {
-            id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
-                : 'u' + Date.now() + Math.random().toString(16).slice(2);
-            localStorage.setItem('demo_student_id', id);
-        }
-        return id;
-    } catch (e) {
-        return 'demo-estudiante';
-    }
+    return localStorage.getItem('demo_student_id') || 'EST-80818-01';
+}
+
+function setStudentId(code) {
+    const cleanCode = (code || 'EST-80818-01').trim().toUpperCase();
+    localStorage.setItem('demo_student_id', cleanCode);
+    return cleanCode;
 }
 
 const ACTIONS = ["Repasar en 2 horas", "Repasar en 1 día", "Repasar en 3 días", "Pausa activa"];
@@ -40,12 +38,9 @@ let streakData = {
 let streakError = false;
 
 // ==============================================================
-// GESTIÓN DE LA MASCOTA (MINI PROFESOR BASADRITO)
+// GESTIÓN DE LA MASCOTA VIRTUAL
 // ==============================================================
-let mascotAccessories = {
-    head: '🎓',
-    body: '👔'
-};
+let mascotAccessories = { head: '🎓', body: '👔' };
 
 const PHRASES_CORRECT = [
     "¡Brillante razonamiento! Deducción impecable. 👏",
@@ -99,7 +94,7 @@ function loadMascotAccessories() {
 }
 
 // ==============================================================
-// COMUNICACIÓN API CON POSTGRESQL (Racha y Misiones)
+// API POSTGRESQL / RACHA
 // ==============================================================
 async function apiRacha(ruta = '', metodo = 'GET', cuerpo = null) {
     const res = await fetch(`${API_URL}/estudiante/${encodeURIComponent(getStudentId())}/racha${ruta}`, {
@@ -122,6 +117,26 @@ async function loadStreak() {
     renderStreakUI();
 }
 
+// ==============================================================
+// PANTALLA INICIAL DE ACCESO
+// ==============================================================
+function showLoginView() {
+    $('main-layout').className = 'layout login-mode';
+    if ($('main-top-header')) $('main-top-header').hidden = true; // <-- Oculta el encabezado en el ingreso
+    $('view-login').hidden = false;
+    $('view-quiz').hidden = true;
+    $('view-dashboard').hidden = true;
+    $('lab-panel').hidden = true;
+    $('btn-volver-dashboard').hidden = true;
+}
+
+function handleLogin(event) {
+    if (event) event.preventDefault();
+    const val = $('input-student-code').value;
+    setStudentId(val);
+    startGeneralQuiz();
+}
+
 let isGeneralQuiz = true;
 let questions = [];
 let currentIndex = 0;
@@ -129,8 +144,6 @@ let renderTime = 0;
 let pauseTimer = null;
 let results = [];
 let selectedTemaForQuiz = null;
-
-const $ = (id) => document.getElementById(id);
 
 function shuffleArray(array) {
     const arr = [...array];
@@ -142,24 +155,27 @@ function shuffleArray(array) {
 }
 
 // ==============================================================
-// 1. CARGA INICIAL (Evaluación general: Mascota oculta)
+// FASE 1: EVALUACIÓN GENERAL (16 PREGUNTAS DIAGNÓSTICAS)
 // ==============================================================
-async function initApp() {
+async function startGeneralQuiz() {
     isGeneralQuiz = true;
     loadMascotAccessories();
     loadStreak();
 
-    $('main-layout').classList.remove('dashboard-mode');
+    $('main-layout').className = 'layout';
+    if ($('main-top-header')) $('main-top-header').hidden = false; // <-- Se muestra en el cuestionario
+    $('view-login').hidden = true;
+    $('view-dashboard').hidden = true;
     $('view-quiz').hidden = false;
     $('lab-panel').hidden = false;
-    $('view-dashboard').hidden = true;
+
     $('btn-volver-dashboard').hidden = true;
+    $('summary-tema').hidden = true;
+    $('quiz-body').hidden = false;
     $('modal-final').hidden = true;
     $('modal-cuestionarios').hidden = true;
 
-    // Al comienzo NO aparece la mascota
     if ($('mascot-quiz-bar')) $('mascot-quiz-bar').hidden = true;
-
     $('main-heading').textContent = "Evaluación General: Razonamiento Lógico-Matemático";
 
     try {
@@ -167,7 +183,6 @@ async function initApp() {
         if (!res.ok) throw new Error("Error al obtener banco general");
         const rawQuestions = await res.json();
         
-        // Aleatorización para no mostrar consecutivas por tema
         questions = shuffleArray(rawQuestions);
         currentIndex = 0;
         results = [];
@@ -241,7 +256,7 @@ async function handleAnswer(selectedIndex, clickedBtn) {
             action_desc: result.action_desc
         });
 
-        // La mascota solo lanza frases en cuestionarios temáticos (cuando está visible)
+        // La mascota lanza frases solo si está visible (cuestionarios temáticos)
         if ($('mascot-quiz-bar') && !$('mascot-quiz-bar').hidden) {
             $('mascot-speech').textContent = getRandomPhrase(result.is_correct);
         }
@@ -352,12 +367,14 @@ function nextQuestion() {
 }
 
 // ==============================================================
-// 2. PASO AL DASHBOARD
+// FASE 2: DASHBOARD (PÁGINA PRINCIPAL)
 // ==============================================================
 function goToDashboard() {
     $('modal-final').hidden = true;
 
-    $('main-layout').classList.add('dashboard-mode');
+    $('main-layout').className = 'layout dashboard-mode';
+    if ($('main-top-header')) $('main-top-header').hidden = false; // <-- Visible en el dashboard
+    $('view-login').hidden = true;
     $('view-quiz').hidden = true;
     $('lab-panel').hidden = true;
     $('view-dashboard').hidden = false;
@@ -409,7 +426,7 @@ function renderStreakUI() {
     const btnClaim = $('btn-claim-streak');
     const hint = $('streak-status-hint');
 
-    // Desbloqueo de accesorios al alcanzar el 50%
+    // Desbloqueo de la mascota al alcanzar el 50%
     const accControls = $('acc-controls');
     const badge = $('mascot-badge');
     const unlockMsg = $('mascot-unlock-msg');
@@ -502,7 +519,7 @@ function openThemeModal(tema) {
 }
 
 // ==============================================================
-// 3. EJECUCIÓN DE CUESTIONARIOS TEMÁTICOS (Mascota visible)
+// FASE 3: CUESTIONARIOS TEMÁTICOS (MASCOTA ACTIVA)
 // ==============================================================
 async function startThemeQuiz(cuestionarioNum) {
     $('modal-cuestionarios').hidden = true;
@@ -513,12 +530,12 @@ async function startThemeQuiz(cuestionarioNum) {
         if (!res.ok) throw new Error("Error al obtener cuestionario del tema");
         questions = await res.json();
 
-        $('main-layout').classList.remove('dashboard-mode');
+        $('main-layout').className = 'layout';
+        if ($('main-top-header')) $('main-top-header').hidden = false; // <-- Visible en el cuestionario temático
         $('view-dashboard').hidden = true;
         $('view-quiz').hidden = false;
         $('lab-panel').hidden = false;
 
-        // Aquí sí se activa el Mini Profesor a un costado
         if ($('mascot-quiz-bar')) {
             $('mascot-quiz-bar').hidden = false;
             $('mascot-speech').textContent = "¡Cuestionario temático! Analiza con calma para desbloquear accesorios.";
@@ -556,14 +573,14 @@ async function showTemaSummary() {
     `;
 }
 
-// Asignación de eventos
 $('next-btn').addEventListener('click', nextQuestion);
 $('skip-pause').addEventListener('click', endPause);
-$('btn-ir-dashboard').addEventListener('click', goToDashboard);
-$('btn-volver-dashboard').addEventListener('click', goToDashboard);
-$('btn-terminar-tema').addEventListener('click', goToDashboard);
 
 const btnClaim = $('btn-claim-streak');
 if (btnClaim) btnClaim.addEventListener('click', claimNextStreak);
 
-window.onload = initApp;
+// Al cargar: solo muestra la tarjeta de acceso
+window.onload = () => {
+    $('input-student-code').value = getStudentId();
+    showLoginView();
+};
