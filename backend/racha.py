@@ -2,7 +2,7 @@
 así se pueden probar sin PostgreSQL."""
 
 MISIONES = ["m1", "m2", "m3", "m4", "m5"]
-PORCENTAJE_POR_MISION = 10          # 5 misiones x 10 % = 50 % (tope diario)
+PORCENTAJE_POR_MISION = 20          # 5 misiones x 20 % = 100 % (tope diario)
 
 
 class ReclamoNoDisponible(Exception):

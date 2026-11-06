@@ -76,8 +76,8 @@ function updateMascotVisuals() {
 }
 
 function setAccessory(slot, icon) {
-    if (streakData.dailyProgressPercent < 50 && !streakData.goalReached) {
-        alert("¡Debes completar el 50% de las misiones diarias para equipar este accesorio!");
+    if (streakData.dailyProgressPercent < 100 && !streakData.goalReached) {
+        alert("¡Debes completar el 100% de las misiones diarias para equipar este accesorio!");
         return;
     }
     mascotAccessories[slot] = icon;
@@ -408,30 +408,31 @@ async function evaluateMissionsOnThemeQuiz(sessionResults) {
 
 function renderStreakUI() {
     $('streak-count-text').textContent = `Racha: ${streakData.streakDays} ${streakData.streakDays === 1 ? 'día' : 'días'}`;
-    $('daily-progress-percent').textContent = `${streakData.dailyProgressPercent}% / 50%`;
-    $('daily-progress-bar').style.width = `${(streakData.dailyProgressPercent / 50) * 100}%`;
+    $('daily-progress-percent').textContent = `${streakData.dailyProgressPercent}% / 100%`;
+    // La barra llena el 100% de su ancho cuando dailyProgressPercent llega a 100:
+    $('daily-progress-bar').style.width = `${streakData.dailyProgressPercent}%`;
 
     ['m1', 'm2', 'm3', 'm4', 'm5'].forEach((key, idx) => {
         const el = $(`m-${idx + 1}`);
         if (!el) return;
         if (streakData.missions[key]) {
             el.classList.add('done');
-            el.querySelector('b').textContent = '✓ Listo (+10%)';
+            el.querySelector('b').textContent = '✓ Listo (+20%)';
         } else {
             el.classList.remove('done');
-            el.querySelector('b').textContent = '+10%';
+            el.querySelector('b').textContent = '+20%';
         }
     });
 
     const btnClaim = $('btn-claim-streak');
     const hint = $('streak-status-hint');
 
-    // Desbloqueo de la mascota al alcanzar el 50%
+    // Desbloqueo de la mascota al alcanzar el 100%
     const accControls = $('acc-controls');
     const badge = $('mascot-badge');
     const unlockMsg = $('mascot-unlock-msg');
 
-    if (streakData.dailyProgressPercent >= 50 || streakData.goalReached) {
+    if (streakData.dailyProgressPercent >= 100 || streakData.goalReached) {
         if (accControls) {
             accControls.style.opacity = '1';
             accControls.style.pointerEvents = 'auto';
@@ -453,9 +454,9 @@ function renderStreakUI() {
     } else if (streakData.canClaim) {
         btnClaim.hidden = false;
         hint.textContent = "¡Volviste al día siguiente! Reclama tu nuevo día de racha.";
-    } else if (streakData.goalReached || streakData.dailyProgressPercent >= 50) {
+    } else if (streakData.goalReached || streakData.dailyProgressPercent >= 100) {
         btnClaim.hidden = true;
-        hint.textContent = "Meta diaria alcanzada (50%). Vuelve mañana para reclamar tu siguiente día de racha (+1 🔥).";
+        hint.textContent = "Meta diaria alcanzada (100%). Vuelve mañana para reclamar tu siguiente día de racha (+1 🔥).";
     } else {
         btnClaim.hidden = true;
         hint.textContent = "Resuelve los cuestionarios temáticos para completar las misiones de hoy.";
@@ -573,10 +574,10 @@ async function showTemaSummary() {
     const promedio = total ? (results.reduce((a, r) => a + r.latency, 0) / total / 1000).toFixed(1) : '0.0';
 
     $('tema-stats').innerHTML = `
-        <div><dt>Aciertos en este tema</dt><dd>${aciertos} de ${total}</dd></div>
-        <div><dt>Tiempo Promedio</dt><dd>${promedio} s</dd></div>
-        <div><dt>Progreso de Racha</dt><dd style="color:#c2410c;">${streakData.dailyProgressPercent}% / 50%</dd></div>
-    `;
+            <div><dt>Aciertos en este tema</dt><dd>${aciertos} de ${total}</dd></div>
+            <div><dt>Tiempo Promedio</dt><dd>${promedio} s</dd></div>
+            <div><dt>Progreso de Racha</dt><dd style="color:#c2410c;">${streakData.dailyProgressPercent}% / 100%</dd></div>
+        `;
 }
 
 $('next-btn').addEventListener('click', nextQuestion);
